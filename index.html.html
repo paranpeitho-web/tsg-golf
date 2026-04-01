@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>TSG — Tauranga Secret Golf</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
+:root{
+  --g9:#0a1f10;--g8:#122b1a;--g7:#1a3d25;--g6:#235230;
+  --g5:#2d6b3e;--g4:#3a8a52;--g3:#52a86d;--g2:#8ecfa4;
+  --g1:#c2e8ce;--g0:#eaf6ef;
+  --gold:#c8a84b;--gold2:#f0d88a;--gold0:#fdf6e3;
+  --cream:#f5f5f0;--white:#fff;
+  --text:#1a2e20;--muted:#5a7060;--border:rgba(35,82,48,.13);
+  --tab-h:64px;--safe-bottom:env(safe-area-inset-bottom,0px);
+  --rlg:16px;--rmd:12px;--rsm:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{font-family:'Noto Sans KR',sans-serif;background:var(--cream);color:var(--text);height:100%;overflow:hidden;}
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh;max-width:480px;margin:0 auto;background:var(--cream);box-shadow:0 0 40px rgba(0,0,0,.12);}
+@media(min-width:768px){body{background:#e8e5df;display:flex;align-items:flex-start;justify-content:center;padding:20px 0;}html,body{overflow:auto;height:auto;}#app{height:calc(100vh - 40px);}}
+
+/* TOP BAR */
+#topbar{background:var(--g9);padding:12px 18px 10px;padding-top:calc(12px + env(safe-area-inset-top,0px));flex-shrink:0;z-index:10;}
+.tb-inner{display:flex;align-items:center;justify-content:space-between;}
+.tb-logo{font-family:'Playfair Display',serif;font-size:16px;color:var(--gold2);letter-spacing:.3px;}
+.tb-badge{background:rgba(200,168,75,.2);border:1px solid rgba(200,168,75,.35);color:var(--gold2);font-size:10px;padding:2px 8px;border-radius:20px;white-space:nowrap;}
+
+/* SCROLL */
+#scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:16px;}
+
+/* TABBAR */
+#tabbar{background:var(--white);border-top:1px solid var(--border);display:flex;flex-shrink:0;padding-bottom:var(--safe-bottom);z-index:20;box-shadow:0 -2px 12px rgba(0,0,0,.06);}
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px 6px;border:none;background:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;min-height:var(--tab-h);position:relative;}
+.tab-btn .ti{font-size:20px;line-height:1;}
+.tab-btn .tl{font-size:10px;margin-top:3px;color:var(--muted);}
+.tab-btn.active .tl{color:var(--g5);font-weight:700;}
+.tab-btn.active::after{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;background:var(--g4);border-radius:0 0 3px 3px;}
+.tab-btn:active{background:var(--g0);}
+
+/* PAGES */
+.page{display:none;}.page.active{display:block;animation:fu .2s ease;}
+@keyframes fu{from{opacity:.5;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
+
+/* SECTION */
+.section{padding:14px 14px 0;}
+.sec-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+
+/* CARD */
+.card{background:var(--white);border-radius:var(--rlg);border:1px solid var(--border);overflow:hidden;margin-bottom:10px;}
+
+/* STATS */
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px;}
+.sc{background:var(--g0);border-radius:var(--rmd);padding:12px 14px;}
+.sc .sl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px;}
+.sc .sv{font-size:22px;font-weight:700;color:var(--g7);line-height:1;}
+.sc .ss{font-size:11px;color:var(--muted);margin-top:2px;}
+.sc.gold{background:var(--gold0);}.sc.gold .sv{color:var(--gold);}
+
+/* RANK */
+.ri{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;}
+.ri:last-child{border-bottom:none;}
+.ri:active{background:var(--g0);}
+.rn{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+.r1{background:var(--gold)}.r2{background:#aaa}.r3{background:#b07040}.rx{background:var(--g5);font-size:11px}
+.ri-info{flex:1;min-width:0;}
+.ri-name{font-size:14px;font-weight:600;}
+.ri-det{font-size:11px;color:var(--muted);margin-top:1px;}
+.ri-hcp{font-size:20px;font-weight:700;color:var(--g6);flex-shrink:0;}
+
+/* ACCORDION */
+.acc-wrap{margin-bottom:10px;}
+.acc-hdr{display:flex;align-items:stretch;cursor:pointer;border-radius:var(--rlg);overflow:hidden;border:1px solid var(--border);background:var(--white);transition:opacity .1s;}
+.acc-hdr:active{opacity:.85;}
+.acc-hdr.open{border-radius:var(--rlg) var(--rlg) 0 0;border-bottom-color:transparent;}
+.acc-left{width:52px;flex-shrink:0;background:var(--g7);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;}
+.acc-left .als{font-size:9px;opacity:.6;font-weight:700;letter-spacing:.5px;}
+.acc-left .aln{font-size:16px;font-weight:700;line-height:1.2;}
+.acc-right{flex:1;padding:11px 12px;}
+.acc-course{font-size:13px;font-weight:700;color:var(--g7);}
+.acc-date{font-size:11px;color:var(--muted);margin-top:1px;}
+.acc-chips{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap;}
+.ach{font-size:10.5px;padding:2px 8px;border-radius:20px;background:var(--g0);color:var(--g6);font-weight:500;}
+.ach.gld{background:var(--gold0);color:#8a6000;}
+.acc-chv{display:flex;align-items:center;padding-right:12px;font-size:12px;color:var(--muted);flex-shrink:0;transition:transform .25s;}
+.acc-chv.open{transform:rotate(180deg);}
+.acc-body{max-height:0;overflow:hidden;transition:max-height .32s cubic-bezier(.4,0,.2,1);background:var(--white);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--rlg) var(--rlg);}
+.acc-body.open{max-height:1400px;}
+.asr{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);}
+.asr:last-child{border-bottom:none;}
+.asr-rn{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;}
+
+/* SCORE TABLE */
+.ss-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.ss-wrap table{border-collapse:collapse;font-size:12px;min-width:700px;width:100%;}
+.ss-wrap th{background:var(--g0);padding:8px 10px;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:600;position:sticky;top:0;white-space:nowrap;border-bottom:1px solid var(--border);}
+.ss-wrap th:first-child{position:sticky;left:0;z-index:2;}
+.ss-wrap td{padding:9px 10px;border-bottom:1px solid rgba(35,82,48,.06);white-space:nowrap;}
+.ss-wrap td:first-child{position:sticky;left:0;background:var(--white);z-index:1;border-right:1px solid var(--border);font-weight:600;}
+.ss-wrap tr:hover td{background:var(--g0);}
+.ss-wrap tr:hover td:first-child{background:var(--g0);}
+.sp{padding:2px 7px;border-radius:20px;font-size:11px;font-weight:600;}
+.sp-lo{background:var(--g1);color:var(--g7);}
+.sp-md{background:#fff3e0;color:#a05000;}
+.sp-hi{background:#fdecea;color:#c0392b;}
+.sp-ab{color:#ccc;}
+
+/* ROLE */
+.role{font-size:9px;padding:1px 5px;border-radius:8px;margin-left:4px;font-weight:600;vertical-align:middle;}
+.rc{background:var(--gold0);color:var(--gold);border:1px solid rgba(200,168,75,.3);}
+.rs{background:#e8f0fe;color:#2459c0;}
+
+/* PLAYER */
+.ph-wrap{background:var(--g8);color:#fff;padding:18px 16px 16px;display:flex;align-items:center;gap:14px;}
+.p-av{width:52px;height:52px;border-radius:50%;background:var(--g6);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--gold2);flex-shrink:0;}
+.p-nm .pn{font-size:18px;font-weight:700;color:#fff;}
+.p-nm .pr{font-size:11px;color:var(--g3);margin-top:2px;}
+.p-hb{margin-left:auto;text-align:right;}
+.p-hb .ph{font-size:28px;font-weight:700;color:var(--gold2);line-height:1;}
+.p-hb .pl{font-size:10px;color:var(--g3);letter-spacing:.5px;}
+
+/* MINICHART */
+.mchart{display:flex;align-items:flex-end;gap:3px;padding:0 2px;}
+.mc-b{flex:1;border-radius:3px 3px 0 0;min-height:4px;position:relative;}
+.mc-b .ml{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:700;color:var(--g7);white-space:nowrap;}
+.mc-b .mr{position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--muted);white-space:nowrap;}
+
+/* PLAYER PICKER */
+.p-picker{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px;}
+.p-pill{padding:10px 12px;border-radius:var(--rmd);border:1.5px solid var(--border);background:var(--white);font-size:13px;font-weight:500;color:var(--text);cursor:pointer;font-family:'Noto Sans KR',sans-serif;text-align:center;}
+.p-pill:active{border-color:var(--g4);background:var(--g0);color:var(--g6);}
+.back-btn{display:flex;align-items:center;gap:6px;padding:10px 14px 0;font-size:13px;color:var(--g5);cursor:pointer;font-weight:600;}
+.back-btn:active{opacity:.6;}
+
+/* COURSE GRID */
+.c-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px;}
+.c-card{background:var(--white);border-radius:var(--rmd);border:1px solid var(--border);padding:12px 14px;}
+.c-card .cn{font-size:13px;font-weight:700;color:var(--g7);}
+.c-card .cc{font-size:11px;color:var(--muted);margin-top:4px;}
+.c-card .cm{font-size:11px;color:var(--g5);font-weight:600;}
+
+/* ATT */
+.att-bar{height:6px;background:var(--g0);border-radius:3px;overflow:hidden;flex:1;}
+.att-fill{height:100%;background:var(--g4);border-radius:3px;}
+
+/* PODIUM */
+.pod-strip{display:flex;gap:8px;padding:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.pod-card{flex-shrink:0;width:110px;border-radius:var(--rmd);padding:14px 10px;text-align:center;border:1px solid var(--border);background:var(--white);}
+.pod-card.p1{background:var(--g8);border-color:rgba(200,168,75,.4);}
+.pod-card .pi{font-size:24px;}
+.pod-card .pn{font-size:13px;font-weight:700;margin-top:5px;}
+.pod-card.p1 .pn{color:#fff;}
+.pod-card .ph{font-size:18px;font-weight:700;color:var(--g5);margin-top:3px;}
+.pod-card.p1 .ph{color:var(--gold2);}
+.pod-card .pr{font-size:10px;color:var(--muted);margin-top:2px;}
+.pod-card.p1 .pr{color:var(--g3);}
+
+/* NEW badge for latest meetings */
+.new-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#e74c3c;margin-left:6px;vertical-align:middle;}
+
+/* BADGE */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
+.bg-green{background:var(--g1);color:var(--g7);}
+.bg-gold{background:var(--gold0);color:#8a6000;border:1px solid rgba(200,168,75,.25);}
+.bg-gray{background:#efefed;color:#666;}
+.bg-blue{background:#e8f0fe;color:#2459c0;}
+.scroll-hint{font-size:10px;color:var(--muted);padding:0 14px 6px;display:flex;align-items:center;gap:4px;}
+.toast{position:fixed;bottom:calc(var(--tab-h)+16px+var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(10px);background:var(--g8);color:#fff;padding:10px 20px;border-radius:30px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:all .25s;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <div class="tb-inner">
+      <div class="tb-logo">⛳ Tauranga Secret Golf</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+        <div class="tb-badge">30차 완료 🆕</div>
+        <div style="font-size:10px;color:var(--g3)">2023 ~ 2026</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="scroll-area">
+
+    <!-- HOME -->
+    <div class="page active" id="page-home">
+      <div class="stat-row">
+        <div class="sc"><div class="sl">총 멤버</div><div class="sv">16</div><div class="ss">명</div></div>
+        <div class="sc"><div class="sl">총 모임</div><div class="sv">30</div><div class="ss">차 (2023~2026)</div></div>
+        <div class="sc gold"><div class="sl">전체 평균</div><div class="sv" id="home-avg">—</div><div class="ss">타수</div></div>
+        <div class="sc"><div class="sl">총 라운드</div><div class="sv" id="home-total">—</div><div class="ss">개 기록</div></div>
+      </div>
+      <div class="section">
+        <div class="sec-title">최근 3차 모임 <span style="font-size:11px;font-weight:400;color:var(--muted)">눌러서 스코어 확인</span></div>
+        <div id="home-recent"></div>
+      </div>
+      <div class="section">
+        <div class="sec-title">핸디캡 Top 3</div>
+        <div class="pod-strip" id="home-podium"></div>
+      </div>
+      <div class="section">
+        <div class="sec-title">전체 랭킹 <span style="font-size:11px;font-weight:400;color:var(--muted)">낮을수록 좋음</span></div>
+        <div class="card" style="margin-bottom:14px"><div id="home-rank"></div></div>
+      </div>
+    </div>
+
+    <!-- MEETINGS -->
+    <div class="page" id="page-meetings">
+      <div class="section" style="padding-bottom:14px">
+        <div class="sec-title" style="padding-top:6px">모임 기록 <span style="font-size:11px;font-weight:400;color:var(--muted)">눌러서 스코어 확인</span></div>
+        <div id="mtg-list"></div>
+      </div>
+    </div>
+
+    <!-- SCORES -->
+    <div class="page" id="page-scores">
+      <div class="section">
+        <div class="sec-title" style="padding-top:6px">전체 스코어표</div>
+        <div class="scroll-hint">← → 좌우로 스크롤하세요</div>
+        <div class="card"><div class="ss-wrap"><table id="score-table"></table></div></div>
+        <div style="display:flex;gap:8px;padding:0 0 10px;flex-wrap:wrap">
+          <span class="sp sp-lo">낮음(평균-5↓)</span><span class="sp sp-md">보통</span>
+          <span class="sp sp-hi">높음(평균+5↑)</span><span class="sp sp-ab">결석</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAYER -->
+    <div class="page" id="page-player">
+      <div id="pv-list"><div class="section"><div class="sec-title" style="padding-top:6px">멤버 선택</div><div class="p-picker" id="p-picker"></div></div></div>
+      <div id="pv-detail" style="display:none"></div>
+    </div>
+
+    <!-- STATS -->
+    <div class="page" id="page-stats">
+      <div class="section" style="padding-top:10px">
+        <div class="card"><div style="padding:12px 14px">
+          <div style="font-size:12px;color:var(--g6);font-weight:700;margin-bottom:5px">📊 핸디캡 계산 방식</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.7">최근 10라운드 기준<br>· 5라운드 이상: 최고·최저 제외 후 평균<br>· 5라운드 미만: 단순 평균</div>
+        </div></div>
+      </div>
+      <div class="section"><div class="sec-title">골프장별 통계</div><div class="c-grid" id="c-grid"></div></div>
+      <div class="section">
+        <div class="sec-title">차수별 평균 타수 추이</div>
+        <div class="card"><div style="padding:12px 14px 6px"><div class="mchart" id="mtg-trend" style="height:80px"></div><div style="height:18px"></div></div></div>
+      </div>
+      <div class="section">
+        <div class="sec-title">멤버별 참가율</div>
+        <div class="card" style="margin-bottom:14px"><div id="att-list"></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="tabbar">
+    <button class="tab-btn active" data-page="home"><span class="ti">🏠</span><span class="tl">홈</span></button>
+    <button class="tab-btn" data-page="meetings"><span class="ti">📅</span><span class="tl">모임</span></button>
+    <button class="tab-btn" data-page="scores"><span class="ti">📋</span><span class="tl">스코어표</span></button>
+    <button class="tab-btn" data-page="player"><span class="ti">🏌️</span><span class="tl">개인기록</span></button>
+    <button class="tab-btn" data-page="stats"><span class="ti">📊</span><span class="tl">통계</span></button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  TSG DATA — 30차까지 업데이트 (2026.03 기준)
+// ══════════════════════════════════════════════
+const M = [
+  // s 배열: 1차~30차 스코어 (null = 결석)
+  {n:"김갑기", r:"회장", s:[null,87,83,83,84,83,87,84,80,84,80,88,88,88,84,85,89,81,null,null,null,101,82,89,89,83,79, 89,77,89]},
+  {n:"유광주", r:"",     s:[85,85,89,null,null,81,93,93,92,84,83,101,null,82,86,93,104,92,null,null,97,null,78,91,92,88,null, 94,93,91]},
+  {n:"박종일", r:"",     s:[81,80,80,83,85,80,85,81,87,77,79,79,85,83,82,75,82,82,80,77,null,83,null,88,79,85,82, 86,79,null]},
+  {n:"김진명", r:"",     s:[78,82,76,77,79,null,null,79,80,78,86,76,85,85,72,79,84,null,78,79,79,null,null,84,76,84,77, 87,78,82]},
+  {n:"홍만기", r:"",     s:[94,86,94,87,81,null,90,88,86,86,null,92,83,88,92,86,95,87,91,84,84,93,null,92,83,103,89, 93,83,89]},
+  {n:"이상요", r:"",     s:[null,89,null,null,85,85,90,93,86,84,88,84,null,84,74,80,85,82,77,86,75,90,null,84,84,87,78, 86,null,90]},
+  {n:"이영록", r:"총무", s:[93,99,99,95,91,92,94,95,96,90,88,109,85,99,83,87,91,100,99,105,91,107,89,98,97,null,null, 108,89,92]},
+  {n:"배창원", r:"",     s:[103,108,102,104,110,104,null,107,107,99,96,103,103,112,96,100,102,108,97,94,98,null,116,105,null,101,101, 103,111,113]},
+  {n:"최창구", r:"",     s:[100,90,null,null,96,null,null,93,null,null,86,null,null,90,85,90,92,null,89,97,null,null,88,87,85,95,90, 101,null,93]},
+  {n:"윤진호", r:"",     s:[null,null,null,null,null,null,null,109,107,105,103,113,118,120,114,106,106,117,106,105,110,null,107,109,97,110,93, 110,104,null]},
+  {n:"유현욱", r:"",     s:[null,null,null,null,null,null,null,null,101,null,93,106,101,null,null,null,null,99,null,97,91,103,null,null,null,null,null, null,null,null]},
+  {n:"김창섭", r:"",     s:[null,null,null,null,null,null,null,null,109,106,null,106,112,null,99,95,115,null,null,102,104,104,99,102,null,100,100, 104,94,106]},
+  {n:"이규호", r:"",     s:[null,null,null,null,null,null,null,null,null,null,null,null,null,79,80,79,88,80,92,74,77,89,84,90,93,90,78, 82,79,86]},
+  {n:"이태호", r:"",     s:[null,null,null,null,null,null,null,null,null,null,null,null,null,86,86,87,101,89,92,92,null,90,null,92,83,90,93, 93,91,101]},
+  {n:"이창우", r:"",     s:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,84,91,null,null,90,84,79,96,83,92,87,83,82, 95,null,89]},
+  {n:"박성호", r:"",     s:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,88,91,82,86, 83,84,null]}
+];
+
+const MT = [
+  // 1~27차 (기존)
+  {lb:"1차",  dt:"23.09.03", c:"Tauranga GC",   av:90.6},
+  {lb:"2차",  dt:"23.10.15", c:"Tauranga GC",   av:89.6},
+  {lb:"3차",  dt:"23.10.24", c:"Omanu GC",      av:89.0},
+  {lb:"4차",  dt:"23.12.17", c:"Omanu GC",      av:88.2},
+  {lb:"5차",  dt:"24.01.14", c:"Mt Maunganui",  av:88.9},
+  {lb:"6차",  dt:"24.02.11", c:"Te Puke GC",    av:87.5},
+  {lb:"7차",  dt:"24.03.10", c:"Omokoroa GC",   av:89.8},
+  {lb:"8차",  dt:"24.04.14", c:"Lake View GC",  av:92.2},
+  {lb:"9차",  dt:"24.05.05", c:"Tauranga GC",   av:93.7},
+  {lb:"10차", dt:"24.06.09", c:"Tauranga GC",   av:89.3},
+  {lb:"11차", dt:"24.07.14", c:"Tauranga GC",   av:88.2},
+  {lb:"12차", dt:"24.08.25", c:"Mt Maunganui",  av:96.1},
+  {lb:"13차", dt:"24.09.08", c:"Tauranga GC",   av:95.6},
+  {lb:"14차", dt:"24.10월",  c:"Omanu GC",      av:91.3},
+  {lb:"15차", dt:"24.11월",  c:"Tauranga GC",   av:86.9},
+  {lb:"16차", dt:"24.12월",  c:"Tauranga GC",   av:88.1},
+  {lb:"17차", dt:"25.01월",  c:"Te Puke GC",    av:94.9},
+  {lb:"18차", dt:"25.02월",  c:"Omanu GC",      av:92.5},
+  {lb:"19차", dt:"25.03월",  c:"Tauranga GC",   av:90.1},
+  {lb:"20차", dt:"25.04월",  c:"Omanu GC",      av:90.5},
+  {lb:"21차", dt:"25.05월",  c:"Tauranga GC",   av:89.5},
+  {lb:"22차", dt:"25.06월",  c:"Omokoroa GC",   av:95.6},
+  {lb:"23차", dt:"25.07월",  c:"Tauranga GC",   av:91.8},
+  {lb:"24차", dt:"25.08월",  c:"Springfield GC",av:92.7},
+  {lb:"25차", dt:"25.10월",  c:"Tauranga GC",   av:87.4},
+  {lb:"26차", dt:"25.11월",  c:"Omokoroa GC",   av:91.5},
+  {lb:"27차", dt:"25.12월",  c:"Omanu GC",      av:86.8},
+  // 28~30차 (신규)
+  {lb:"28차", dt:"26.01월",  c:"Te Puke GC",    av:94.3, isNew:true},
+  {lb:"29차", dt:"26.02월",  c:"Omanu GC",      av:88.5, isNew:true},
+  {lb:"30차", dt:"26.03월",  c:"Te Puke GC",    av:93.4, isNew:true}
+];
+
+// ── helpers ──
+const att  = m => m.s.filter(x=>x!==null);
+const avg  = a => a.length ? a.reduce((s,v)=>s+v,0)/a.length : null;
+const best = a => a.length ? Math.min(...a) : null;
+const wrst = a => a.length ? Math.max(...a) : null;
+const f1   = v => v!=null ? v.toFixed(1) : '—';
+
+function hcp(m){
+  const sc=att(m); if(!sc.length) return null;
+  if(sc.length<5) return +(avg(sc).toFixed(2));
+  const s=[...sc].sort((a,b)=>a-b).slice(1,sc.length-1);
+  return +(avg(s).toFixed(2));
+}
+function ranked(){
+  return [...M].map(m=>({...m,ch:hcp(m)}))
+    .filter(m=>m.ch!==null)
+    .sort((a,b)=>a.ch-b.ch);
+}
+
+function mtgRows(i){
+  return M.map(m=>({n:m.n,r:m.r,s:m.s[i]}))
+    .filter(x=>x.s!==null)
+    .sort((a,b)=>a.s-b.s);
+}
+function mtgStats(i){
+  const rows=mtgRows(i);
+  if(!rows.length) return {n:0,av:null,b:null,w:null,bm:null};
+  return {n:rows.length, av:+(avg(rows.map(r=>r.s)).toFixed(1)),
+          b:rows[0].s, w:rows[rows.length-1].s, bm:rows[0].n};
+}
+
+function scCls(s,av){
+  if(s==null) return 'sp-ab'; if(!av) return '';
+  if(s<=av-5) return 'sp-lo'; if(s>=av+5) return 'sp-hi'; return 'sp-md';
+}
+function rb(r){ return r?`<span class="role ${r==='회장'?'rc':'rs'}">${r}</span>`:''; }
+
+// ── ACCORDION ──
+function accScores(i){
+  const rows=mtgRows(i);
+  if(!rows.length) return '<div style="padding:14px;text-align:center;font-size:13px;color:var(--muted)">스코어 없음</div>';
+  const mav=avg(rows.map(r=>r.s));
+  return rows.map((row,ri)=>{
+    const cls=scCls(row.s,mav);
+    const rnc=ri===0?'r1':ri===1?'r2':ri===2?'r3':'rx';
+    return `<div class="asr">
+      <div class="asr-rn ${rnc}">${ri+1}</div>
+      <div style="flex:1;font-size:13px;font-weight:600">${row.n}${rb(row.r)}</div>
+      <span class="sp ${cls}">${row.s}</span>
+    </div>`;
+  }).join('');
+}
+
+function buildAcc(mtgIdx, ns){
+  const mt=MT[mtgIdx], st=mtgStats(mtgIdx);
+  const uid=`a${ns}${mtgIdx}`;
+  const newDot = mt.isNew ? '<span class="new-dot"></span>' : '';
+  return `<div class="acc-wrap">
+    <div class="acc-hdr" id="h${uid}" onclick="toggleAcc('${uid}')">
+      <div class="acc-left" style="${mt.isNew?'background:var(--g6)':''}">
+        <div class="als">TSG</div>
+        <div class="aln">${mt.lb}</div>
+      </div>
+      <div class="acc-right">
+        <div class="acc-course">${mt.c}${newDot}</div>
+        <div class="acc-date">${mt.dt}</div>
+        <div class="acc-chips">
+          <span class="ach">${st.n}명 참가</span>
+          <span class="ach gld">평균 ${st.av||'—'}타</span>
+          ${st.bm?`<span class="ach" style="background:var(--gold0);color:#7a5500">🏆 ${st.bm}</span>`:''}
+        </div>
+      </div>
+      <div class="acc-chv" id="c${uid}">▼</div>
+    </div>
+    <div class="acc-body" id="b${uid}">
+      <div style="padding:6px 0 2px">
+        <div style="padding:7px 14px 5px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid var(--border)">타수 순위</div>
+        ${accScores(mtgIdx)}
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleAcc(uid){
+  const b=document.getElementById('b'+uid);
+  const h=document.getElementById('h'+uid);
+  const c=document.getElementById('c'+uid);
+  const open=b.classList.toggle('open');
+  h.classList.toggle('open',open);
+  c.classList.toggle('open',open);
+}
+
+// ── NAV ──
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>go(btn.dataset.page));
+});
+const RENDERS={home:renderHome,meetings:renderMeetings,scores:renderScores,player:renderPList,stats:renderStats};
+function go(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelector(`[data-page="${id}"]`).classList.add('active');
+  document.getElementById('scroll-area').scrollTop=0;
+  RENDERS[id]?.();
+}
+
+// ══════════════════════════════════════════════
+//  HOME
+// ══════════════════════════════════════════════
+function renderHome(){
+  const allSc=M.flatMap(m=>att(m));
+  document.getElementById('home-avg').textContent=f1(avg(allSc));
+  document.getElementById('home-total').textContent=allSc.length;
+
+  // 최근 3차: 29,28,27차 (idx 29,28,27)
+  document.getElementById('home-recent').innerHTML=[29,28,27].map(i=>buildAcc(i,'h')).join('');
+
+  // podium
+  const rk=ranked();
+  document.getElementById('home-podium').innerHTML=
+    [rk[1],rk[0],rk[2]].map((m,i)=>{
+      const pos=i===1?1:i===0?2:3;
+      const ico=pos===1?'🥇':pos===2?'🥈':'🥉';
+      return `<div class="pod-card ${pos===1?'p1':''}">
+        <div class="pi">${ico}</div><div class="pn">${m.n}</div>
+        <div class="ph">${m.ch.toFixed(1)}</div>
+        <div class="pr">${att(m).length}회 참가</div>
+      </div>`;
+    }).join('');
+
+  // rank list
+  document.getElementById('home-rank').innerHTML=rk.map((m,i)=>`
+    <div class="ri" onclick="goPlayer('${m.n}')">
+      <span class="rn ${i===0?'r1':i===1?'r2':i===2?'r3':'rx'}">${i+1}</span>
+      <div class="ri-info">
+        <div class="ri-name">${m.n}${rb(m.r)}</div>
+        <div class="ri-det">${att(m).length}회 참가 · 평균 ${f1(avg(att(m)))}타</div>
+      </div>
+      <div class="ri-hcp">${m.ch.toFixed(1)}</div>
+      <span style="color:var(--border);font-size:14px">›</span>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════
+//  MEETINGS
+// ══════════════════════════════════════════════
+function renderMeetings(){
+  const idx=[...Array(MT.length).keys()].reverse();
+  document.getElementById('mtg-list').innerHTML=idx.map(i=>buildAcc(i,'m')).join('');
+}
+
+// ══════════════════════════════════════════════
+//  SCORES TABLE
+// ══════════════════════════════════════════════
+function renderScores(){
+  const mav=MT.map((_,i)=>{
+    const sc=M.map(m=>m.s[i]).filter(x=>x!==null); return avg(sc);
+  });
+  let h=`<thead>
+    <tr>
+      <th>이름</th>
+      ${MT.map((mt,i)=>`<th style="text-align:center;min-width:38px${mt.isNew?';color:var(--g5)':''}">${mt.lb}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${mt.c.replace(' GC','').replace(' Golf Club','')}</span></th>`).join('')}
+      <th style="text-align:right;min-width:40px">평균</th>
+    </tr>
+    <tr style="background:#f0faf4">
+      <td style="font-size:10px;color:var(--muted);font-weight:600;padding:5px 10px">모임평균</td>
+      ${mav.map(a=>`<td style="text-align:center;font-size:10px;font-weight:700;color:var(--g5);padding:5px 4px">${a?a.toFixed(1):'—'}</td>`).join('')}
+      <td></td>
+    </tr>
+  </thead><tbody>`;
+  M.forEach(m=>{
+    const sc=att(m);
+    h+=`<tr>
+      <td style="font-size:12px">${m.n}${rb(m.r)}</td>
+      ${m.s.map((s,i)=>`<td style="text-align:center${MT[i].isNew?';background:rgba(46,138,82,.04)':''}">${s!=null?`<span class="sp ${scCls(s,mav[i])}">${s}</span>`:`<span class="sp sp-ab">–</span>`}</td>`).join('')}
+      <td style="text-align:right;font-size:12px;font-weight:700;color:var(--g6)">${f1(avg(sc))}</td>
+    </tr>`;
+  });
+  h+='</tbody>';
+  document.getElementById('score-table').innerHTML=h;
+}
+
+// ══════════════════════════════════════════════
+//  PLAYER
+// ══════════════════════════════════════════════
+function renderPList(){
+  document.getElementById('pv-list').style.display='block';
+  document.getElementById('pv-detail').style.display='none';
+  const rk=ranked();
+  document.getElementById('p-picker').innerHTML=rk.map((m,i)=>`
+    <button class="p-pill" onclick="goPlayer('${m.n}')">
+      <div style="font-size:13px;font-weight:600">${m.n}${rb(m.r)}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">${i+1}위 · ${m.ch.toFixed(1)}</div>
+    </button>`).join('');
+}
+
+function goPlayer(name){
+  go('player');
+  const m=M.find(x=>x.n===name); if(!m) return;
+  document.getElementById('pv-list').style.display='none';
+  document.getElementById('scroll-area').scrollTop=0;
+
+  const sc=att(m), avgV=avg(sc), b=best(sc), w=wrst(sc);
+  const rate=((sc.length/MT.length)*100).toFixed(0), ch=hcp(m);
+
+  const last10=m.s.map((s,i)=>s!=null?{s,i}:null).filter(Boolean).slice(-10);
+  const maxS=last10.length?Math.max(...last10.map(x=>x.s)):100;
+  const rng=(maxS-(last10.length?Math.min(...last10.map(x=>x.s)):70))||1;
+
+  const bars=last10.map(({s,i})=>`
+    <div class="mc-b" style="background:${s<=avgV-3?'var(--g4)':s>=avgV+3?'#e74c3c':'var(--g6)'};height:${((maxS-s)/rng*65+15).toFixed(0)}%">
+      <div class="ml">${s}</div>
+      <div class="mr">${MT[i]?.lb||''}</div>
+    </div>`).join('');
+
+  const rows=[...MT].reverse().map((mt,ri)=>{
+    const i=MT.length-1-ri, s=m.s[i];
+    const mtgSc=M.map(mb=>mb.s[i]).filter(x=>x!==null);
+    const isBest=s!==null&&mtgSc.length>0&&s===Math.min(...mtgSc);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);${mt.isNew?'background:rgba(46,138,82,.03)':''}">
+      <span class="badge ${s!=null?'bg-green':'bg-gray'}" style="min-width:34px;text-align:center">${mt.lb}${mt.isNew?'<span class="new-dot" style="margin-left:3px"></span>':''}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;color:var(--g7);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${mt.c}</div>
+        <div style="font-size:10px;color:var(--muted)">${mt.dt}</div>
+      </div>
+      <div style="text-align:right">
+        ${s!=null?`<div style="font-size:16px;font-weight:700;color:var(--g6)">${s}</div>`:`<div style="font-size:13px;color:#ccc">결석</div>`}
+        ${isBest?`<div style="font-size:9px;color:var(--gold);font-weight:700">🏆 베스트</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('pv-detail').innerHTML=`
+    <div class="back-btn" onclick="renderPList()">‹ 목록으로</div>
+    <div class="ph-wrap" style="margin-top:8px">
+      <div class="p-av">${m.n[0]}</div>
+      <div class="p-nm">
+        <div class="pn">${m.n}</div>
+        <div class="pr">${m.r||'TSG 멤버'} · ${sc.length}회 참가 (${rate}%)</div>
+      </div>
+      <div class="p-hb">
+        <div class="ph">${ch?ch.toFixed(1):'—'}</div>
+        <div class="pl">HANDICAP</div>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="sc"><div class="sl">평균타수</div><div class="sv">${f1(avgV)}</div></div>
+      <div class="sc gold"><div class="sl">베스트</div><div class="sv">${b||'—'}</div></div>
+      <div class="sc"><div class="sl">참가횟수</div><div class="sv">${sc.length}</div><div class="ss">/ 30차</div></div>
+      <div class="sc"><div class="sl">워스트</div><div class="sv" style="color:#c0392b">${w||'—'}</div></div>
+    </div>
+    ${last10.length?`
+    <div class="section">
+      <div class="sec-title">최근 ${last10.length}라운드 트렌드</div>
+      <div class="card" style="margin-bottom:0">
+        <div style="padding:12px 14px 6px">
+          <div class="mchart" style="height:80px">${bars}</div>
+          <div style="height:18px"></div>
+        </div>
+      </div>
+    </div>`:''}
+    <div class="section" style="margin-top:10px">
+      <div class="sec-title">전체 라운드 기록</div>
+      <div class="card" style="margin-bottom:14px">${rows}<div style="height:1px"></div></div>
+    </div>`;
+  document.getElementById('pv-detail').style.display='block';
+}
+
+// ══════════════════════════════════════════════
+//  STATS
+// ══════════════════════════════════════════════
+function renderStats(){
+  // course
+  const cmap={};
+  MT.forEach(mt=>{
+    if(!cmap[mt.c]) cmap[mt.c]={c:mt.c,cnt:0,avgs:[]};
+    cmap[mt.c].cnt++;
+    if(mt.av) cmap[mt.c].avgs.push(mt.av);
+  });
+  document.getElementById('c-grid').innerHTML=Object.values(cmap).sort((a,b)=>b.cnt-a.cnt).map(c=>`
+    <div class="c-card">
+      <div class="cn">${c.c.replace(' Golf Club','').replace(' GC','')}</div>
+      <div class="cc">${c.cnt}회 방문</div>
+      <div class="cm">평균 ${f1(avg(c.avgs))}타</div>
+    </div>`).join('');
+
+  // trend chart
+  const avgs=MT.map(mt=>mt.av).filter(Boolean);
+  const maxA=Math.max(...avgs), rng=maxA-Math.min(...avgs)||1, gavg=avg(avgs);
+  document.getElementById('mtg-trend').innerHTML=MT.map(mt=>{
+    const a=mt.av; if(!a) return `<div class="mc-b" style="background:#eee;height:10%"><div class="mr">${mt.lb}</div></div>`;
+    const col=mt.isNew?(a<gavg?'var(--g5)':'var(--g3)'):(a<gavg?'var(--g4)':'var(--g2)');
+    return `<div class="mc-b" style="background:${col};height:${((maxA-a)/rng*65+15).toFixed(0)}%">
+      <div class="ml">${a}</div><div class="mr">${mt.lb}</div>
+    </div>`;
+  }).join('');
+
+  // attendance
+  const rk=ranked();
+  document.getElementById('att-list').innerHTML=rk.map(m=>{
+    const rate=(att(m).length/MT.length*100).toFixed(0);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border)">
+      <div style="min-width:56px;font-size:13px;font-weight:600">${m.n}</div>
+      <div class="att-bar"><div class="att-fill" style="width:${rate}%"></div></div>
+      <div style="min-width:36px;text-align:right;font-size:12px;font-weight:600;color:var(--g5)">${rate}%</div>
+      <div style="font-size:11px;color:var(--muted);min-width:28px">${att(m).length}회</div>
+    </div>`;
+  }).join('');
+}
+
+// INIT
+renderHome();
+</script>
+</body>
+</html>
