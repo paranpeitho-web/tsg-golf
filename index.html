@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>J's Golf</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --r9:#2a1520;--r8:#3d1e2f;--r7:#5c2d44;--r6:#7a3d5c;
+  --r5:#9c5070;--r4:#c07898;--r3:#dba8be;--r2:#eecedd;
+  --r1:#f8eef3;--r0:#fdf7fa;
+  --gd:#c4923e;--gd2:#e8c07a;--gd0:#faf4e8;--gd3:#7a5a1e;
+  --gr5:#5c7a60;--gr4:#7a9e7e;--gr1:#cce0cf;--gr0:#eef5ef;
+  --cr:#faf8f6;--wh:#fff;
+  --tx:#2a1520;--mt:#9a7585;--bd:rgba(122,61,92,.13);
+  --th:62px;--sb:env(safe-area-inset-bottom,0px);
+  --rl:16px;--rm:12px;--rs:8px;
+  --win:#3d7a50;--wn0:#e8f5ec;--wn1:#b8dfc2;
+  --ls:#b03030;--ls0:#fce8e8;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{font-family:'Noto Sans KR',sans-serif;background:var(--cr);color:var(--tx);height:100%;overflow:hidden;}
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh;max-width:480px;margin:0 auto;background:var(--cr);box-shadow:0 0 60px rgba(42,21,32,.18);}
+@media(min-width:768px){body{background:#e8e0e5;display:flex;align-items:flex-start;justify-content:center;padding:20px 0;}html,body{overflow:auto;height:auto;}#app{height:calc(100vh - 40px);}}
+
+/* TOP BAR */
+#topbar{background:var(--r9);padding:13px 18px 11px;padding-top:calc(13px + env(safe-area-inset-top,0px));flex-shrink:0;z-index:10;position:relative;overflow:hidden;}
+#topbar::before{content:'';position:absolute;top:-30px;right:-30px;width:130px;height:130px;border-radius:50%;background:rgba(196,146,62,.07);pointer-events:none;}
+.tb-inner{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;}
+.tb-logo{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gd2);letter-spacing:.3px;display:flex;align-items:baseline;gap:7px;}
+.tb-logo em{font-size:10px;font-style:normal;font-family:'DM Sans',sans-serif;color:rgba(232,192,122,.55);letter-spacing:1.2px;}
+.tb-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+.tb-badge{background:rgba(196,146,62,.18);border:1px solid rgba(196,146,62,.35);color:var(--gd2);font-size:10px;padding:2px 9px;border-radius:20px;font-family:'DM Sans',sans-serif;}
+.tb-sub{font-size:10px;color:rgba(232,192,122,.45);font-family:'DM Sans',sans-serif;}
+
+/* SCROLL */
+#scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:16px;}
+
+/* TAB BAR */
+#tabbar{background:var(--wh);border-top:1px solid var(--bd);display:flex;flex-shrink:0;padding-bottom:var(--sb);z-index:20;box-shadow:0 -2px 16px rgba(42,21,32,.07);}
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px 5px;border:none;background:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;min-height:var(--th);position:relative;}
+.tab-btn .ti{font-size:17px;line-height:1;}
+.tab-btn .tl{font-size:9px;margin-top:3px;color:var(--mt);letter-spacing:.2px;}
+.tab-btn.active .tl{color:var(--r6);font-weight:700;}
+.tab-btn.active::after{content:'';position:absolute;top:0;left:12%;right:12%;height:2.5px;background:linear-gradient(90deg,var(--r5),var(--gd));border-radius:0 0 4px 4px;}
+.tab-btn:active{background:var(--r1);}
+
+/* PAGES */
+.page{display:none;}.page.active{display:block;animation:fu .2s ease;}
+@keyframes fu{from{opacity:.4;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* LOADING */
+.loading-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:14px;}
+.loading-spinner{width:36px;height:36px;border:3px solid var(--r2);border-top-color:var(--r5);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{font-size:13px;color:var(--mt);font-family:'DM Sans',sans-serif;}
+.error-wrap{margin:16px;padding:16px;background:var(--ls0);border-radius:var(--rm);border:1px solid rgba(176,48,48,.2);}
+.error-title{font-size:13px;font-weight:700;color:var(--ls);margin-bottom:6px;}
+.error-msg{font-size:12px;color:var(--ls);font-family:'DM Sans',sans-serif;line-height:1.6;}
+.retry-btn{margin-top:10px;padding:8px 20px;background:var(--r6);color:#fff;border:none;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* SECTION */
+.section{padding:14px 14px 0;}
+.sec-title{font-size:11px;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:1.3px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;font-family:'DM Sans',sans-serif;}
+.sec-title-sub{font-size:11px;font-weight:400;color:var(--mt);text-transform:none;letter-spacing:0;}
+
+/* CARD */
+.card{background:var(--wh);border-radius:var(--rl);border:1px solid var(--bd);overflow:hidden;margin-bottom:10px;}
+
+/* STAT GRID */
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px;}
+.sc{background:var(--r1);border-radius:var(--rm);padding:13px 14px;}
+.sc .sl{font-size:10px;color:var(--mt);text-transform:uppercase;letter-spacing:.9px;margin-bottom:4px;font-family:'DM Sans',sans-serif;}
+.sc .sv{font-size:24px;font-weight:700;color:var(--r7);line-height:1;font-family:'Cormorant Garamond',serif;}
+.sc .ss{font-size:11px;color:var(--mt);margin-top:3px;}
+.sc.gold{background:var(--gd0);}.sc.gold .sv{color:var(--gd3);}
+.sc.win-bg{background:var(--wn0);}.sc.win-bg .sv{color:var(--win);}
+
+/* RANK ITEM */
+.ri{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--bd);cursor:pointer;transition:background .1s;}
+.ri:last-child{border-bottom:none;}
+.ri:active{background:var(--r1);}
+.rn{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
+.r1{background:linear-gradient(135deg,var(--gd),var(--gd2));color:var(--gd3)!important;}
+.r2{background:#bbb;}.r3{background:#c09060;}.rx{background:var(--r4);}
+.ri-info{flex:1;min-width:0;}
+.ri-name{font-size:15px;font-weight:600;font-family:'Cormorant Garamond',serif;}
+.ri-det{font-size:11px;color:var(--mt);margin-top:1px;font-family:'DM Sans',sans-serif;}
+.ri-hcp{font-size:20px;font-weight:700;color:var(--r6);font-family:'Cormorant Garamond',serif;margin-right:4px;}
+
+/* AVATAR */
+.av{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex-shrink:0;font-family:'Cormorant Garamond',serif;}
+.av0{background:linear-gradient(135deg,#9c5070,#c07898);}
+.av1{background:linear-gradient(135deg,#c4923e,#e8c07a);color:#7a5a1e!important;}
+.av2{background:linear-gradient(135deg,#5c7a60,#7a9e7e);}
+.av3{background:linear-gradient(135deg,#7060a0,#a090c8);}
+.av4{background:linear-gradient(135deg,#3a7a9a,#6aaac8);}
+.av5{background:linear-gradient(135deg,#9a6a3a,#c89a6a);}
+.av6{background:linear-gradient(135deg,#6a3a7a,#9a6aa8);}
+.av7{background:linear-gradient(135deg,#3a6a4a,#6a9a7a);}
+
+/* ACCORDION */
+.acc-wrap{margin-bottom:10px;}
+.acc-hdr{display:flex;align-items:stretch;cursor:pointer;border-radius:var(--rl);overflow:hidden;border:1px solid var(--bd);background:var(--wh);transition:opacity .12s;}
+.acc-hdr:active{opacity:.82;}
+.acc-hdr.open{border-radius:var(--rl) var(--rl) 0 0;border-bottom-color:transparent;}
+.acc-left{width:56px;flex-shrink:0;background:linear-gradient(160deg,var(--r7),var(--r6));display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;gap:1px;padding:4px 0;}
+.al-s{font-size:8px;opacity:.6;font-weight:700;letter-spacing:.8px;font-family:'DM Sans',sans-serif;text-transform:uppercase;}
+.al-n{font-size:20px;font-weight:700;line-height:1;font-family:'Cormorant Garamond',serif;}
+.al-yr{font-size:8px;opacity:.5;font-family:'DM Sans',sans-serif;}
+.acc-right{flex:1;padding:11px 12px 10px;}
+.acc-course{font-size:14px;font-weight:700;color:var(--r7);}
+.acc-date{font-size:11px;color:var(--mt);margin-top:2px;font-family:'DM Sans',sans-serif;}
+.acc-chips{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;}
+.ach{font-size:10px;padding:2px 9px;border-radius:20px;font-weight:600;font-family:'DM Sans',sans-serif;}
+.ach-base{background:var(--r1);color:var(--r6);}
+.ach-win{background:var(--wn0);color:var(--win);}
+.ach-meal{background:var(--gd0);color:var(--gd3);}
+.ach-score{background:var(--gr0);color:var(--gr5);}
+.acc-chv{display:flex;align-items:center;padding-right:14px;font-size:13px;color:var(--mt);flex-shrink:0;transition:transform .25s;}
+.acc-chv.open{transform:rotate(180deg);}
+.acc-body{max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.4,0,.2,1);background:var(--wh);border:1px solid var(--bd);border-top:none;border-radius:0 0 var(--rl) var(--rl);}
+.acc-body.open{max-height:1200px;}
+
+/* SCORE ROW */
+.sc-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--bd);}
+.sc-row:last-of-type{border-bottom:none;}
+.sc-rank{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;}
+.sc-name{flex:1;font-size:14px;font-weight:600;font-family:'Cormorant Garamond',serif;}
+.sc-score{font-size:22px;font-weight:700;font-family:'Cormorant Garamond',serif;color:var(--r6);min-width:36px;text-align:right;}
+.sc-score.best{color:var(--win);}
+.sc-money-col{display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:62px;}
+.mp{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.mp-p{background:var(--wn0);color:var(--win);}
+.mp-n{background:var(--ls0);color:var(--ls);}
+.mp-meal{background:var(--gd0);color:var(--gd3);}
+.meal-footer{padding:9px 14px;background:linear-gradient(90deg,var(--gd0),var(--wh));border-top:1px solid rgba(196,146,62,.15);display:flex;align-items:center;gap:8px;}
+.mf-icon{font-size:14px;}
+.mf-main{font-size:11px;color:var(--gd3);font-weight:700;font-family:'DM Sans',sans-serif;}
+.mf-detail{font-size:10px;color:var(--mt);font-family:'DM Sans',sans-serif;}
+
+/* SCORE TABLE */
+.ss-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.ss-wrap table{border-collapse:collapse;font-size:12px;min-width:440px;width:100%;}
+.ss-wrap th{background:var(--r1);padding:8px 10px;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--mt);font-weight:600;position:sticky;top:0;white-space:nowrap;border-bottom:1px solid var(--bd);font-family:'DM Sans',sans-serif;}
+.ss-wrap th:first-child{position:sticky;left:0;z-index:2;background:var(--r1);}
+.ss-wrap td{padding:9px 10px;border-bottom:1px solid rgba(122,61,92,.06);white-space:nowrap;font-family:'DM Sans',sans-serif;}
+.ss-wrap td:first-child{position:sticky;left:0;background:var(--wh);z-index:1;border-right:1px solid var(--bd);font-weight:600;font-family:'Noto Sans KR',sans-serif;}
+.ss-wrap tr:hover td{background:var(--r1);}
+.ss-wrap tr:hover td:first-child{background:var(--r1);}
+.sp{padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
+.sp-lo{background:var(--gr1);color:var(--gr5);}
+.sp-md{background:var(--r2);color:var(--r7);}
+.sp-hi{background:var(--ls0);color:var(--ls);}
+.sp-ab{color:#ccc;}
+
+/* PLAYER HEADER */
+.ph-wrap{background:linear-gradient(135deg,var(--r9) 0%,var(--r8) 50%,var(--r7) 100%);color:#fff;padding:20px 16px 18px;display:flex;align-items:center;gap:14px;}
+.p-av-lg{width:56px;height:56px;font-size:20px;border:2.5px solid var(--gd);}
+.p-nm .pn{font-size:20px;font-weight:700;color:#fff;font-family:'Cormorant Garamond',serif;}
+.p-nm .pr{font-size:11px;color:var(--r3);margin-top:2px;font-family:'DM Sans',sans-serif;}
+.p-hb{margin-left:auto;text-align:right;}
+.p-hb .ph{font-size:28px;font-weight:700;color:var(--gd2);line-height:1;font-family:'Cormorant Garamond',serif;}
+.p-hb .pl{font-size:9px;color:var(--r3);letter-spacing:.8px;font-family:'DM Sans',sans-serif;text-transform:uppercase;}
+
+/* MONEY STRIP */
+.money-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bd);}
+.ms-cell{background:var(--wh);padding:12px 8px;text-align:center;}
+.ms-label{font-size:9px;color:var(--mt);text-transform:uppercase;letter-spacing:.7px;font-family:'DM Sans',sans-serif;margin-bottom:4px;}
+.ms-val{font-size:19px;font-weight:700;font-family:'Cormorant Garamond',serif;}
+.ms-cell.ms-win .ms-val{color:var(--win);}
+.ms-cell.ms-meal .ms-val{color:var(--gd3);}
+.ms-cell.ms-np .ms-val{color:var(--win);}
+.ms-cell.ms-nn .ms-val{color:var(--ls);}
+.ms-cell.ms-nz .ms-val{color:var(--mt);}
+
+/* MINI CHART */
+.mchart{display:flex;align-items:flex-end;gap:3px;padding:0 2px;}
+.mc-b{flex:1;border-radius:3px 3px 0 0;min-height:4px;position:relative;}
+.mc-b .ml{position:absolute;top:-15px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:700;color:var(--r7);white-space:nowrap;font-family:'DM Sans',sans-serif;}
+.mc-b .mr{position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--mt);white-space:nowrap;font-family:'DM Sans',sans-serif;}
+
+/* PLAYER PICKER */
+.p-picker{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px;}
+.p-pill{padding:14px 12px 12px;border-radius:var(--rm);border:1.5px solid var(--bd);background:var(--wh);cursor:pointer;text-align:center;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.p-pill:active{border-color:var(--r4);background:var(--r1);}
+.p-pill-name{font-size:15px;font-weight:700;font-family:'Cormorant Garamond',serif;color:var(--tx);}
+.p-pill-sub{font-size:10px;color:var(--mt);font-family:'DM Sans',sans-serif;}
+.back-btn{display:flex;align-items:center;gap:5px;padding:10px 14px 0;font-size:13px;color:var(--r5);cursor:pointer;font-weight:600;font-family:'DM Sans',sans-serif;}
+.back-btn:active{opacity:.6;}
+
+/* PLAYER SUBTAB */
+.pv-stab{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:11px 8px;border:none;background:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:12px;color:var(--mt);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;}
+.pv-stab.active{color:var(--r6);font-weight:700;border-bottom-color:var(--r5);}
+.pv-stab:active{background:var(--r1);}
+
+/* COURSE GRID */
+.c-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px;}
+.c-card{background:var(--wh);border-radius:var(--rm);border:1px solid var(--bd);padding:13px 14px;}
+.c-card .cn{font-size:14px;font-weight:700;color:var(--r7);font-family:'Cormorant Garamond',serif;}
+.c-card .cc{font-size:11px;color:var(--mt);margin-top:4px;font-family:'DM Sans',sans-serif;}
+.c-card .cm{font-size:11px;color:var(--gr5);font-weight:600;font-family:'DM Sans',sans-serif;}
+
+/* ATT BAR */
+.att-bar{height:6px;background:var(--r1);border-radius:3px;overflow:hidden;flex:1;}
+.att-fill{height:100%;background:linear-gradient(90deg,var(--r5),var(--r3));border-radius:3px;}
+
+/* YEAR PILLS */
+.year-pill-row{display:flex;gap:6px;padding:0 14px 12px;overflow-x:auto;}
+.yr-pill{flex-shrink:0;padding:5px 16px;border-radius:20px;border:1.5px solid var(--bd);background:var(--wh);font-size:12px;font-weight:600;color:var(--mt);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.yr-pill.on{background:var(--r6);border-color:var(--r6);color:#fff;}
+
+/* ANNUAL TOP CARD */
+.annual-card{background:linear-gradient(135deg,var(--r9),var(--r7));border-radius:var(--rl);overflow:hidden;margin-bottom:10px;}
+.annual-hdr{padding:16px;}
+.annual-title{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gd2);margin-bottom:2px;}
+.annual-sub{font-size:10px;color:var(--r3);font-family:'DM Sans',sans-serif;}
+.annual-grid{display:grid;gap:1px;background:rgba(255,255,255,.1);}
+.ag-cell{background:rgba(42,21,32,.55);padding:13px 6px;text-align:center;}
+.ag-av{margin:0 auto 7px;}
+.ag-name{font-size:12px;font-weight:700;font-family:'Cormorant Garamond',serif;color:#fff;}
+.ag-net{font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;margin-top:5px;}
+.ag-net.pos{color:#80e09a;}.ag-net.neg{color:#f09090;}.ag-net.zero{color:var(--r3);}
+.ag-detail{font-size:9px;color:rgba(219,168,190,.7);margin-top:4px;font-family:'DM Sans',sans-serif;line-height:1.6;}
+
+/* LEDGER TABLE */
+.ledger-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.ledger-tbl{border-collapse:collapse;width:100%;min-width:460px;font-size:11px;}
+.ledger-tbl th{background:var(--r1);padding:7px 8px;font-size:9px;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.6px;font-family:'DM Sans',sans-serif;white-space:nowrap;border-bottom:1px solid var(--bd);text-align:center;}
+.ledger-tbl th:first-child{text-align:left;position:sticky;left:0;background:var(--r1);z-index:2;}
+.ledger-tbl td{padding:8px 8px;border-bottom:1px solid rgba(122,61,92,.07);text-align:center;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.ledger-tbl td:first-child{position:sticky;left:0;background:var(--wh);z-index:1;border-right:1px solid var(--bd);text-align:left;font-family:'Noto Sans KR',sans-serif;font-size:11px;}
+.ledger-tbl tr.cum-row td{background:rgba(122,61,92,.035);font-size:10px;color:var(--mt);}
+.ledger-tbl tr.cum-row td:first-child{background:rgba(122,61,92,.035);}
+.ledger-tbl tr.total-row td{background:var(--r9);color:#fff;font-weight:700;}
+.ledger-tbl tr.total-row td:first-child{background:var(--r9);color:var(--gd2);}
+.lt-wp{color:var(--win);font-weight:700;}
+.lt-wn{color:var(--ls);font-weight:700;}
+.lt-ml{color:var(--gd3);font-weight:600;}
+.lt-np{color:var(--win);font-weight:700;}
+.lt-nn{color:var(--ls);font-weight:700;}
+.lt-mt{color:var(--mt);}
+
+/* CUM MEMBER CARD */
+.cum-card{padding:14px;border-bottom:1px solid var(--bd);}
+.cum-card:last-child{border-bottom:none;}
+.cum-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.cum-bars{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.cb{border-radius:var(--rs);padding:9px 10px;text-align:center;}
+.cb-label{font-size:9px;color:var(--mt);text-transform:uppercase;letter-spacing:.7px;font-family:'DM Sans',sans-serif;margin-bottom:3px;}
+.cb-val{font-size:18px;font-weight:700;font-family:'Cormorant Garamond',serif;}
+.cb-win{background:var(--wn0);}.cb-win .cb-val{color:var(--win);}
+.cb-meal{background:var(--gd0);}.cb-meal .cb-val{color:var(--gd3);}
+.cb-np{background:var(--wn0);}.cb-np .cb-val{color:var(--win);}
+.cb-nn{background:var(--ls0);}.cb-nn .cb-val{color:var(--ls);}
+.cb-nz{background:var(--r1);}.cb-nz .cb-val{color:var(--mt);}
+
+/* NET CHIP */
+.nc{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif;}
+.nc-p{background:var(--wn0);color:var(--win);}
+.nc-n{background:var(--ls0);color:var(--ls);}
+.nc-z{background:var(--r1);color:var(--mt);}
+
+/* HOME MONEY ROW */
+.hl-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--bd);}
+.hl-row:last-child{border-bottom:none;}
+
+/* MISC */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
+.bg-rose{background:var(--r2);color:var(--r7);}
+.bg-gray{background:#efefed;color:#777;}
+.scroll-hint{font-size:10px;color:var(--mt);padding:0 14px 6px;display:flex;align-items:center;gap:4px;font-family:'DM Sans',sans-serif;}
+.toast{position:fixed;bottom:calc(var(--th)+14px+var(--sb));left:50%;transform:translateX(-50%) translateY(10px);background:var(--r8);color:#fff;padding:10px 20px;border-radius:30px;font-size:13px;z-index:999;opacity:0;transition:all .25s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* LAST UPDATED */
+.last-updated{font-size:10px;color:var(--mt);text-align:center;padding:6px 0 0;font-family:'DM Sans',sans-serif;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <div class="tb-inner">
+      <div class="tb-logo">🌸 J's Golf <em>LADIES</em></div>
+      <div class="tb-right">
+        <div class="tb-badge" id="top-badge">로딩 중...</div>
+        <div class="tb-sub" id="tb-updated">2026 ~</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="scroll-area">
+    <!-- HOME -->
+    <div class="page active" id="page-home">
+      <div id="home-loading" class="loading-wrap">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">데이터 불러오는 중...</div>
+      </div>
+      <div id="home-content" style="display:none">
+        <div class="stat-row">
+          <div class="sc"><div class="sl">멤버</div><div class="sv" id="h-members">—</div><div class="ss">명</div></div>
+          <div class="sc"><div class="sl">총 라운드</div><div class="sv" id="h-rounds">—</div><div class="ss">회</div></div>
+          <div class="sc gold"><div class="sl">전체 평균</div><div class="sv" id="h-avg">—</div><div class="ss">타</div></div>
+          <div class="sc win-bg"><div class="sl">최다 수익</div><div class="sv" id="h-top">—</div><div class="ss" id="h-top-amt"></div></div>
+        </div>
+        <div class="section">
+          <div class="sec-title">최근 라운드 <span class="sec-title-sub">눌러서 스코어 확인</span></div>
+          <div id="home-recent"></div>
+        </div>
+        <div class="section">
+          <div class="sec-title">💰 머니 현황 <span class="sec-title-sub" id="home-mny-yr"></span></div>
+          <div class="card" id="home-money"></div>
+        </div>
+        <div class="section">
+          <div class="sec-title">🏆 핸디캡 랭킹 <span class="sec-title-sub">낮을수록 좋음</span></div>
+          <div class="card" style="margin-bottom:14px"><div id="home-rank"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROUNDS -->
+    <div class="page" id="page-rounds">
+      <div class="section" style="padding-bottom:14px">
+        <div class="year-pill-row" id="rnd-yr"></div>
+        <div class="sec-title" style="padding-top:2px">라운드 기록 <span class="sec-title-sub">눌러서 스코어 확인</span></div>
+        <div id="rounds-list"></div>
+      </div>
+    </div>
+
+    <!-- MONEY -->
+    <div class="page" id="page-money">
+      <div class="section" style="padding-bottom:14px">
+        <div class="year-pill-row" id="mny-yr"></div>
+        <div class="annual-card" id="mny-annual"></div>
+        <div class="sec-title" style="margin-top:4px">라운드별 내역</div>
+        <div class="card" style="margin-bottom:10px"><div class="ledger-wrap"><table class="ledger-tbl" id="mny-ledger"></table></div></div>
+        <div class="sec-title">멤버별 누적</div>
+        <div class="card" style="margin-bottom:14px" id="mny-cum"></div>
+      </div>
+    </div>
+
+    <!-- SCORES -->
+    <div class="page" id="page-scores">
+      <div class="section">
+        <div class="year-pill-row" id="sc-yr"></div>
+        <div class="sec-title" style="padding-top:2px">전체 스코어표</div>
+        <div class="scroll-hint">← → 좌우로 스크롤</div>
+        <div class="card"><div class="ss-wrap"><table id="score-table"></table></div></div>
+        <div style="display:flex;gap:7px;padding:0 0 10px;flex-wrap:wrap">
+          <span class="sp sp-lo">베스트</span><span class="sp sp-md">보통</span>
+          <span class="sp sp-hi">최고타</span><span class="sp sp-ab">결석</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAYER -->
+    <div class="page" id="page-player">
+      <div id="pv-subtab-bar" style="display:flex;background:var(--wh);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:5;">
+        <button class="pv-stab active" data-sub="member" onclick="switchSub('member')">🏌️‍♀️ 개인 기록</button>
+        <button class="pv-stab" data-sub="stats" onclick="switchSub('stats')">📊 통계</button>
+      </div>
+      <div id="pv-sub-member">
+        <div id="pv-list"><div class="section"><div class="sec-title" style="padding-top:10px">멤버 선택</div><div class="p-picker" id="p-picker"></div></div></div>
+        <div id="pv-detail" style="display:none"></div>
+      </div>
+      <div id="pv-sub-stats" style="display:none">
+        <div class="section" style="padding-top:10px">
+          <div class="card"><div style="padding:12px 14px">
+            <div style="font-size:12px;color:var(--r6);font-weight:700;margin-bottom:5px">📊 핸디캡 계산 방식</div>
+            <div style="font-size:12px;color:var(--mt);line-height:1.8;font-family:'DM Sans',sans-serif">최근 10라운드 기준<br>· 5라운드 이상 : 최고·최저 제외 평균<br>· 5라운드 미만 : 단순 평균</div>
+          </div></div>
+        </div>
+        <div class="section"><div class="sec-title">골프장별 통계</div><div class="c-grid" id="c-grid"></div></div>
+        <div class="section">
+          <div class="sec-title">라운드 평균 추이</div>
+          <div class="card"><div style="padding:14px 14px 6px"><div class="mchart" id="mtg-trend" style="height:80px"></div><div style="height:18px"></div></div></div>
+        </div>
+        <div class="section">
+          <div class="sec-title">멤버별 참가율</div>
+          <div class="card" style="margin-bottom:14px"><div id="att-list"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tabbar">
+    <button class="tab-btn active" data-page="home"><span class="ti">🏠</span><span class="tl">홈</span></button>
+    <button class="tab-btn" data-page="rounds"><span class="ti">📅</span><span class="tl">라운드</span></button>
+    <button class="tab-btn" data-page="money"><span class="ti">💰</span><span class="tl">머니</span></button>
+    <button class="tab-btn" data-page="scores"><span class="ti">📋</span><span class="tl">스코어표</span></button>
+    <button class="tab-btn" data-page="player"><span class="ti">🏌️‍♀️</span><span class="tl">기록·통계</span></button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════
+//  ★ 설정: 아래 URL만 본인 Apps Script URL로 교체
+// ════════════════════════════════════════════════
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzYcvmwMUloPfhzHiMurUDNddlbSCcxykZri03dtfFC-ABrxgyYuwfwSHrX9PbV8QBQ/exec';
+// ════════════════════════════════════════════════
+
+// 전역 데이터
+let MEMBERS = [];
+let ROUNDS  = [];
+let years   = [];
+let selRndYr, selMnyYr, selScYr = 'all';
+let lastFetch = null;
+
+// ══════════════ FETCH DATA ══════════════
+async function fetchData(){
+  try {
+    showLoading(true);
+    const res = await fetch(SHEET_URL + '?t=' + Date.now());
+    if(!res.ok) throw new Error('Network error');
+    const raw = await res.json();
+    parseSheetData(raw);
+    lastFetch = new Date();
+    document.getElementById('tb-updated').textContent =
+      '업데이트 ' + lastFetch.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+    showLoading(false);
+    renderHome();
+  } catch(e) {
+    showError(e.message);
+  }
+}
+
+function showLoading(on){
+  const ld = document.getElementById('home-loading');
+  const ct = document.getElementById('home-content');
+  if(ld) ld.style.display = on ? 'flex' : 'none';
+  if(ct) ct.style.display = on ? 'none' : 'block';
+}
+
+function showError(msg){
+  document.getElementById('home-loading').innerHTML = `
+    <div class="error-wrap">
+      <div class="error-title">⚠️ 데이터를 불러올 수 없어요</div>
+      <div class="error-msg">Google Sheets 연결을 확인해 주세요.<br>${msg}</div>
+      <button class="retry-btn" onclick="fetchData()">다시 시도</button>
+    </div>`;
+}
+
+// ══════════════ PARSE SHEET DATA ══════════════
+// 시트 헤더 예시:
+// 차수 | 날짜 | 코스 | 박희정_스코어 | 박희정_상금 | 박희정_식사비 | 이현정_스코어 | ...
+function parseSheetData(raw){
+  if(!raw || !raw.headers || !raw.rows) return;
+
+  const headers = raw.headers; // ['차수','날짜','코스','박희정_스코어','박희정_상금',...]
+
+  // 멤버 이름 자동 추출 (_스코어 패턴)
+  const memberSet = [];
+  headers.forEach(h => {
+    if(h.endsWith('_스코어')){
+      const name = h.replace('_스코어','');
+      if(!memberSet.includes(name)) memberSet.push(name);
+    }
+  });
+  MEMBERS = memberSet.map(n => ({ n }));
+
+  // 라운드 파싱
+  ROUNDS = raw.rows
+    .filter(row => row[0]) // 차수 있는 행만
+    .map(row => {
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = row[i] ?? ''; });
+
+      const lb  = String(obj['차수'] || '').trim();
+      const dt  = String(obj['날짜'] || '').trim();
+      const c   = String(obj['코스'] || '').trim();
+      const yr  = parseInt(dt) || new Date().getFullYear(); // 날짜에서 연도 추출
+
+      const scores = {}, money = {};
+      MEMBERS.forEach(m => {
+        const s  = parseFloat(obj[m.n+'_스코어']);
+        const w  = parseFloat(obj[m.n+'_상금'])  || 0;
+        const ml = parseFloat(obj[m.n+'_식사비']) || 0;
+        if(!isNaN(s) && s > 0) scores[m.n] = s;
+        money[m.n] = { won: w, meal: ml };
+      });
+
+      return { lb, dt, yr, c, scores, money };
+    })
+    .filter(r => r.lb && r.c);
+
+  years = [...new Set(ROUNDS.map(r=>r.yr))].sort((a,b)=>b-a);
+  selRndYr = years[0];
+  selMnyYr = years[0];
+
+  const memberCount = MEMBERS.length;
+  document.getElementById('top-badge').textContent =
+    `${years[0] || ''} · ${ROUNDS.length}라운드`;
+}
+
+// ══════════════ HELPERS ══════════════
+const f1  = v => v!=null ? v.toFixed(1) : '—';
+const fM  = v => v===0?'$0':v>0?`+$${v}`:`-$${Math.abs(v)}`;
+const avc = i => `av${i%8}`;
+const rnkCls = i => ['r1','r2','r3','rx'][Math.min(i,3)];
+
+function getRnds(yr){ return yr==='all'?ROUNDS:ROUNDS.filter(r=>r.yr===yr); }
+function mScores(n){ return ROUNDS.map(r=>r.scores[n]??null); }
+function att(n){ return mScores(n).filter(x=>x!==null); }
+function avg(a){ return a.length?a.reduce((s,v)=>s+v,0)/a.length:null; }
+function best(a){ return a.length?Math.min(...a):null; }
+function wrst(a){ return a.length?Math.max(...a):null; }
+function hcp(n){
+  const sc=att(n); if(!sc.length) return null;
+  if(sc.length<5) return +(avg(sc).toFixed(2));
+  return +(avg([...sc].sort((a,b)=>a-b).slice(1,sc.length-1)).toFixed(2));
+}
+function ranked(){
+  return MEMBERS.map(m=>({...m,ch:hcp(m.n)})).filter(m=>m.ch!==null).sort((a,b)=>a.ch-b.ch);
+}
+function cumMoney(yr){
+  const out={};
+  MEMBERS.forEach(m=>{ out[m.n]={wonCum:0,mealCum:0}; });
+  getRnds(yr).forEach(r=>{
+    MEMBERS.forEach(m=>{
+      out[m.n].wonCum  += r.money[m.n]?.won  ?? 0;
+      out[m.n].mealCum += r.money[m.n]?.meal ?? 0;
+    });
+  });
+  MEMBERS.forEach(m=>{ out[m.n].net = out[m.n].wonCum - out[m.n].mealCum; });
+  return out;
+}
+function nc(v){ return `<span class="nc ${v>0?'nc-p':v<0?'nc-n':'nc-z'}">${fM(v)}</span>`; }
+function mp(v){ return v>0?`<span class="mp mp-p">${fM(v)}</span>`:v<0?`<span class="mp mp-n">${fM(v)}</span>`:''; }
+
+// ══════════════ NAV ══════════════
+function go(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelector(`.tab-btn[data-page="${page}"]`).classList.add('active');
+  document.getElementById('scroll-area').scrollTop=0;
+  if(page==='rounds')  renderRounds();
+  if(page==='money')   renderMoney();
+  if(page==='scores')  renderScores();
+  if(page==='player'){ renderPList(); renderStats(); }
+}
+document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>go(b.dataset.page)));
+
+function switchSub(sub){
+  document.querySelectorAll('.pv-stab').forEach(b=>b.classList.toggle('active',b.dataset.sub===sub));
+  document.getElementById('pv-sub-member').style.display=sub==='member'?'block':'none';
+  document.getElementById('pv-sub-stats').style.display=sub==='stats'?'block':'none';
+}
+
+// ══════════════ ACCORDION ══════════════
+function toggleAcc(hdr){
+  const was=hdr.classList.contains('open');
+  document.querySelectorAll('.acc-hdr.open').forEach(h=>{
+    h.classList.remove('open');
+    h.querySelector('.acc-chv').classList.remove('open');
+    h.nextElementSibling.classList.remove('open');
+  });
+  if(!was){
+    hdr.classList.add('open');
+    hdr.querySelector('.acc-chv').classList.add('open');
+    hdr.nextElementSibling.classList.add('open');
+  }
+}
+
+function buildBody(r){
+  // 이 라운드에 참가한 멤버만 (스코어 있는 멤버)
+  const participants = MEMBERS.filter(m => r.scores[m.n] != null);
+  const rows = participants
+    .map((m,i)=>({ n:m.n, idx:MEMBERS.findIndex(x=>x.n===m.n), s:r.scores[m.n] }))
+    .sort((a,b)=>a.s-b.s);
+
+  const scRows = rows.map((row,ri)=>{
+    const won  = r.money[row.n]?.won  ?? 0;
+    const meal = r.money[row.n]?.meal ?? 0;
+    return `<div class="sc-row">
+      <div class="sc-rank ${rnkCls(ri)}">${ri+1}</div>
+      <div class="av ${avc(row.idx)}" style="width:30px;height:30px;font-size:12px">${row.n[0]}</div>
+      <div class="sc-name">${row.n}</div>
+      <div class="sc-money-col">
+        ${mp(won)}
+        ${meal>0?`<span class="mp mp-meal">🍽 $${meal}</span>`:''}
+      </div>
+      <div class="sc-score ${ri===0?'best':''}">${row.s}</div>
+    </div>`;
+  }).join('');
+
+  const totalMeal = participants.reduce((s,m)=>s+(r.money[m.n]?.meal||0),0);
+  const mealDetail = participants.filter(m=>(r.money[m.n]?.meal||0)>0)
+    .map(m=>`${m.n} $${r.money[m.n].meal}`).join(' · ');
+  const footer = totalMeal>0 ? `
+    <div class="meal-footer">
+      <span class="mf-icon">🍽</span>
+      <span class="mf-main">식사비 합계 $${totalMeal}</span>
+      <span class="mf-detail">&nbsp;${mealDetail}</span>
+    </div>` : '';
+
+  return scRows + footer;
+}
+
+function buildHdr(r){
+  const participants = MEMBERS.filter(m => r.scores[m.n] != null);
+  const sc = participants.map(m => r.scores[m.n]);
+  const low = Math.min(...sc);
+  const bestM = participants.find(m => r.scores[m.n] === low);
+  const topWon = Math.max(...participants.map(m => r.money[m.n]?.won||0));
+  const topW   = participants.find(m => (r.money[m.n]?.won||0) === topWon);
+  const totalMeal = participants.reduce((s,m)=>s+(r.money[m.n]?.meal||0),0);
+  const roundNum = r.lb.replace(/[^0-9]/g,'') || r.lb;
+
+  return `<div class="acc-hdr" onclick="toggleAcc(this)">
+    <div class="acc-left">
+      <div class="al-s">ROUND</div>
+      <div class="al-n">${roundNum}</div>
+      <div class="al-yr">${r.yr}</div>
+    </div>
+    <div class="acc-right">
+      <div class="acc-course">${r.c}</div>
+      <div class="acc-date">${r.dt} · ${participants.length}명 참가</div>
+      <div class="acc-chips">
+        <span class="ach ach-score">avg ${f1(avg(sc))}</span>
+        <span class="ach ach-base">🏆 ${bestM?.n||'—'} ${low}타</span>
+        ${topWon>0?`<span class="ach ach-win">💰 ${topW?.n} ${fM(topWon)}</span>`:''}
+        ${totalMeal>0?`<span class="ach ach-meal">🍽 $${totalMeal}</span>`:''}
+      </div>
+    </div>
+    <div class="acc-chv">▾</div>
+  </div>`;
+}
+
+// ══════════════ HOME ══════════════
+function renderHome(){
+  if(!ROUNDS.length) return;
+
+  const allSc = ROUNDS.flatMap(r=>MEMBERS.map(m=>r.scores[m.n]).filter(s=>s!=null));
+  document.getElementById('h-members').textContent = MEMBERS.length;
+  document.getElementById('h-rounds').textContent  = ROUNDS.length;
+  document.getElementById('h-avg').textContent     = f1(avg(allSc));
+
+  const cum  = cumMoney('all');
+  const topW = MEMBERS.reduce((b,m)=>cum[m.n].wonCum>cum[b.n].wonCum?m:b, MEMBERS[0]);
+  document.getElementById('h-top').textContent    = topW.n;
+  document.getElementById('h-top-amt').textContent = fM(cum[topW.n].wonCum);
+
+  // recent 3
+  document.getElementById('home-recent').innerHTML =
+    [...ROUNDS].slice(-3).reverse().map(r=>
+      `<div class="acc-wrap">${buildHdr(r)}<div class="acc-body">${buildBody(r)}</div></div>`
+    ).join('');
+
+  // money highlight
+  document.getElementById('home-mny-yr').textContent = `${years[0]}년 누적`;
+  document.getElementById('home-money').innerHTML = `<div style="padding:14px">
+    ${MEMBERS.map((m,i)=>{
+      const c=cum[m.n];
+      return `<div class="hl-row">
+        <div class="av ${avc(i)}" style="width:36px;height:36px;font-size:14px">${m.n[0]}</div>
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:700;font-family:'Cormorant Garamond',serif">${m.n}</div>
+          <div style="font-size:10px;color:var(--mt);margin-top:1px;font-family:'DM Sans',sans-serif">
+            딴돈 ${fM(c.wonCum)} &nbsp;·&nbsp; 식사 $${c.mealCum}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+          ${nc(c.net)}
+          <span style="font-size:9px;color:var(--mt);font-family:'DM Sans',sans-serif">순합계</span>
+        </div>
+      </div>`;
+    }).join('')}
+    <div style="padding-top:8px;border-top:1px solid var(--bd);margin-top:4px;font-size:10px;color:var(--mt);text-align:center;font-family:'DM Sans',sans-serif">
+      순합계 = 딴금액 누계 − 식사비 지출
+    </div>
+  </div>`;
+
+  // rank
+  const rk = ranked();
+  document.getElementById('home-rank').innerHTML = rk.map((m,i)=>{
+    const idx = MEMBERS.findIndex(x=>x.n===m.n);
+    return `<div class="ri" onclick="goPlayer('${m.n}')">
+      <div class="rn ${rnkCls(i)}">${i+1}</div>
+      <div class="av ${avc(idx)}" style="width:32px;height:32px;font-size:13px">${m.n[0]}</div>
+      <div class="ri-info">
+        <div class="ri-name">${m.n}</div>
+        <div class="ri-det">평균 ${f1(avg(att(m.n)))}타 · ${att(m.n).length}라운드</div>
+      </div>
+      <div class="ri-hcp">${f1(m.ch)}</div>
+      <div style="font-size:12px;color:var(--mt)">›</div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════ ROUNDS ══════════════
+function renderRounds(){
+  document.getElementById('rnd-yr').innerHTML =
+    ['all',...years].map(y=>
+      `<button class="yr-pill ${selRndYr===y?'on':''}" onclick="selRndYr='${y}';renderRounds()">
+        ${y==='all'?'전체':y+'년'}
+      </button>`).join('');
+
+  const list = selRndYr==='all'
+    ? [...ROUNDS].reverse()
+    : [...ROUNDS].filter(r=>r.yr==selRndYr).reverse();
+
+  document.getElementById('rounds-list').innerHTML = list.map(r=>
+    `<div class="acc-wrap">${buildHdr(r)}<div class="acc-body">${buildBody(r)}</div></div>`
+  ).join('');
+}
+
+// ══════════════ MONEY ══════════════
+function renderMoney(){
+  document.getElementById('mny-yr').innerHTML = years.map(y=>
+    `<button class="yr-pill ${selMnyYr===y?'on':''}" onclick="selMnyYr=${y};renderMoney()">${y}년</button>`
+  ).join('');
+
+  const cum  = cumMoney(selMnyYr);
+  const rnds = getRnds(selMnyYr);
+  const colCount = MEMBERS.length;
+
+  // annual card — 멤버 수에 따라 grid 조정
+  document.getElementById('mny-annual').innerHTML = `
+    <div class="annual-hdr">
+      <div class="annual-title">${selMnyYr}년 결산</div>
+      <div class="annual-sub">${rnds.length}라운드 · 순합계 = 딴금액 − 식사비</div>
+    </div>
+    <div class="annual-grid" style="grid-template-columns:repeat(${Math.min(colCount,4)},1fr)">
+      ${MEMBERS.map((m,i)=>{
+        const c=cum[m.n];
+        const cls=c.net>0?'pos':c.net<0?'neg':'zero';
+        return `<div class="ag-cell">
+          <div class="av ${avc(i)} ag-av" style="width:32px;height:32px;font-size:13px">${m.n[0]}</div>
+          <div class="ag-name">${m.n}</div>
+          <div class="ag-net ${cls}">${fM(c.net)}</div>
+          <div class="ag-detail">딴돈 ${fM(c.wonCum)}<br>식사 $${c.mealCum}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+
+  // ledger table
+  const thead = `<thead>
+    <tr>
+      <th>라운드</th>
+      ${MEMBERS.map(m=>`<th colspan="3" style="text-align:center;border-left:1px solid var(--bd)">${m.n}</th>`).join('')}
+    </tr>
+    <tr>
+      <th>코스</th>
+      ${MEMBERS.map(()=>`<th style="border-left:1px solid var(--bd)">스코어</th><th>상금</th><th>식사비</th>`).join('')}
+    </tr>
+  </thead>`;
+
+  let rw={}, rm={};
+  MEMBERS.forEach(m=>{ rw[m.n]=0; rm[m.n]=0; });
+
+  const tbody = rnds.map(r=>{
+    MEMBERS.forEach(m=>{ rw[m.n]+=r.money[m.n]?.won??0; rm[m.n]+=r.money[m.n]?.meal??0; });
+    const roundNum = r.lb.replace(/[^0-9]/g,'') || r.lb;
+    const dr = `<tr>
+      <td>
+        <div style="font-weight:700;font-size:12px">${r.lb}</div>
+        <div style="font-size:9px;color:var(--mt)">${r.c.replace(' Golf Club','').replace(' GC','')}</div>
+      </td>
+      ${MEMBERS.map(m=>{
+        const s   = r.scores[m.n] ?? null;
+        const won = r.money[m.n]?.won  ?? 0;
+        const ml  = r.money[m.n]?.meal ?? 0;
+        return `<td style="border-left:1px solid var(--bd)">${s??'—'}</td>
+                <td class="${won>0?'lt-wp':won<0?'lt-wn':'lt-mt'}">${won!==0?fM(won):'—'}</td>
+                <td class="${ml>0?'lt-ml':'lt-mt'}">${ml>0?`$${ml}`:'—'}</td>`;
+      }).join('')}
+    </tr>`;
+    const cr = `<tr class="cum-row">
+      <td>▸ 누계</td>
+      ${MEMBERS.map(m=>{
+        const net=rw[m.n]-rm[m.n];
+        return `<td style="border-left:1px solid var(--bd)">—</td>
+                <td class="${rw[m.n]>0?'lt-wp':rw[m.n]<0?'lt-wn':'lt-mt'}">${fM(rw[m.n])}</td>
+                <td class="${net>0?'lt-np':net<0?'lt-nn':'lt-mt'}">순 ${fM(net)}</td>`;
+      }).join('')}
+    </tr>`;
+    return dr + cr;
+  }).join('');
+
+  const tr = `<tr class="total-row">
+    <td>최종합계</td>
+    ${MEMBERS.map(m=>{
+      const c=cum[m.n];
+      return `<td style="border-left:1px solid rgba(255,255,255,.15)">—</td>
+              <td>${fM(c.wonCum)}</td>
+              <td>순 ${fM(c.net)}</td>`;
+    }).join('')}
+  </tr>`;
+
+  document.getElementById('mny-ledger').innerHTML = thead + `<tbody>${tbody}${tr}</tbody>`;
+
+  // cumulative cards
+  document.getElementById('mny-cum').innerHTML = MEMBERS.map((m,i)=>{
+    const c=cum[m.n];
+    const nk=c.net>0?'cb-np':c.net<0?'cb-nn':'cb-nz';
+    return `<div class="cum-card">
+      <div class="cum-top">
+        <div class="av ${avc(i)}" style="width:40px;height:40px;font-size:16px">${m.n[0]}</div>
+        <div style="flex:1">
+          <div style="font-size:17px;font-weight:700;font-family:'Cormorant Garamond',serif">${m.n}</div>
+          <div style="font-size:10px;color:var(--mt);font-family:'DM Sans',sans-serif">${selMnyYr}년 · ${rnds.length}라운드 누적</div>
+        </div>
+        ${nc(c.net)}
+      </div>
+      <div class="cum-bars">
+        <div class="cb cb-win"><div class="cb-label">딴금액</div><div class="cb-val">${fM(c.wonCum)}</div></div>
+        <div class="cb cb-meal"><div class="cb-label">식사비</div><div class="cb-val">$${c.mealCum}</div></div>
+        <div class="cb ${nk}"><div class="cb-label">순합계</div><div class="cb-val">${fM(c.net)}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════ SCORES ══════════════
+function renderScores(){
+  document.getElementById('sc-yr').innerHTML =
+    ['all',...years].map(y=>
+      `<button class="yr-pill ${selScYr===y?'on':''}" onclick="selScYr='${y}';renderScores()">
+        ${y==='all'?'전체':y+'년'}
+      </button>`).join('');
+
+  const rnds = selScYr==='all' ? ROUNDS : ROUNDS.filter(r=>r.yr==selScYr);
+  const thead = `<thead><tr>
+    <th>이름</th>
+    ${rnds.map(r=>`<th>${r.lb}<br><span style="font-size:9px;font-weight:400;color:var(--mt)">${r.dt.slice(5)}</span></th>`).join('')}
+    <th>평균</th><th>베스트</th>
+  </tr></thead>`;
+
+  const tbody = MEMBERS.map(m=>{
+    const sc  = rnds.map(r=>r.scores[m.n]??null);
+    const vl  = sc.filter(s=>s!==null);
+    const mav = avg(vl), bst=best(vl), wst=wrst(vl);
+    return `<tr>
+      <td>${m.n}</td>
+      ${sc.map(s=>{
+        if(s===null) return `<td><span class="sp sp-ab">—</span></td>`;
+        const cls = s===bst?'sp-lo': s===wst?'sp-hi':'sp-md';
+        return `<td><span class="sp ${cls}">${s}</span></td>`;
+      }).join('')}
+      <td><strong>${f1(mav)}</strong></td>
+      <td><strong style="color:var(--gr5)">${bst||'—'}</strong></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('score-table').innerHTML = thead + `<tbody>${tbody}</tbody>`;
+}
+
+// ══════════════ PLAYER LIST ══════════════
+function renderPList(){
+  switchSub('member');
+  document.getElementById('pv-list').style.display='block';
+  document.getElementById('pv-detail').style.display='none';
+  const rk  = ranked();
+  const cum = cumMoney('all');
+  document.getElementById('p-picker').innerHTML = MEMBERS.map((m,i)=>{
+    const ri = rk.findIndex(x=>x.n===m.n);
+    return `<button class="p-pill" onclick="goPlayer('${m.n}')">
+      <div class="av ${avc(i)}" style="width:40px;height:40px;font-size:16px">${m.n[0]}</div>
+      <div class="p-pill-name">${m.n}</div>
+      <div class="p-pill-sub">${ri>=0?`${ri+1}위 · HC ${f1(rk[ri].ch)}`:'기록없음'}</div>
+      ${nc(cum[m.n].net)}
+    </button>`;
+  }).join('');
+}
+
+function goPlayer(name){
+  go('player');
+  const mi  = MEMBERS.findIndex(x=>x.n===name);
+  document.getElementById('pv-list').style.display='none';
+  document.getElementById('scroll-area').scrollTop=0;
+
+  const sc   = att(name);
+  const avgV = avg(sc), bst=best(sc), wst=wrst(sc);
+  const rate = ROUNDS.length>0 ? ((sc.length/ROUNDS.length)*100).toFixed(0) : 0;
+  const ch   = hcp(name);
+  const cum  = cumMoney('all')[name];
+
+  const l10  = ROUNDS.map((r,i)=>r.scores[name]!=null?{s:r.scores[name],i}:null).filter(Boolean).slice(-10);
+  const maxS = l10.length ? Math.max(...l10.map(x=>x.s)) : 100;
+  const minS = l10.length ? Math.min(...l10.map(x=>x.s)) : 70;
+  const rng  = (maxS-minS)||1;
+  const bars = l10.map(({s,i})=>
+    `<div class="mc-b" style="background:${s===minS?'var(--gr4)':s===maxS?'var(--r4)':'var(--r5)'};height:${((maxS-s)/rng*65+15).toFixed(0)}%">
+      <div class="ml">${s}</div><div class="mr">${ROUNDS[i]?.lb||''}</div>
+    </div>`).join('');
+
+  const hist = [...ROUNDS].reverse().map(r=>{
+    const s    = r.scores[name]??null;
+    const won  = r.money[name]?.won  ?? 0;
+    const meal = r.money[name]?.meal ?? 0;
+    const allS = MEMBERS.map(m=>r.scores[m.n]).filter(x=>x!=null);
+    const isBest = s!==null && s===Math.min(...allS);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--bd)">
+      <span class="badge ${s!=null?'bg-rose':'bg-gray'}" style="min-width:32px;text-align:center;font-size:10px">${r.lb}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;color:var(--r7);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.c}</div>
+        <div style="font-size:10px;color:var(--mt);font-family:'DM Sans',sans-serif">${r.dt}</div>
+      </div>
+      <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+        ${s!=null
+          ? `<div style="font-size:20px;font-weight:700;color:var(--r6);font-family:'Cormorant Garamond',serif">${s}</div>`
+          : `<div style="font-size:12px;color:#ccc">결석</div>`}
+        ${isBest?`<div style="font-size:9px;color:var(--gd);font-weight:700">🏆 베스트</div>`:''}
+        <div style="display:flex;gap:4px">
+          ${mp(won)}
+          ${meal>0?`<span class="mp mp-meal">🍽$${meal}</span>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const netKey = cum.net>0?'ms-np':cum.net<0?'ms-nn':'ms-nz';
+  document.getElementById('pv-detail').innerHTML = `
+    <div class="back-btn" onclick="renderPList()">‹ 목록으로</div>
+    <div class="ph-wrap" style="margin-top:8px">
+      <div class="av ${avc(mi)} p-av-lg">${name[0]}</div>
+      <div class="p-nm">
+        <div class="pn">${name}</div>
+        <div class="pr">${sc.length}라운드 참가 (${rate}%)</div>
+      </div>
+      <div class="p-hb">
+        <div class="ph">${ch?f1(ch):'—'}</div>
+        <div class="pl">Handicap</div>
+      </div>
+    </div>
+    <div class="money-strip">
+      <div class="ms-cell ms-win"><div class="ms-label">딴금액 누계</div><div class="ms-val">${fM(cum.wonCum)}</div></div>
+      <div class="ms-cell ms-meal"><div class="ms-label">식사비 지출</div><div class="ms-val">$${cum.mealCum}</div></div>
+      <div class="ms-cell ${netKey}"><div class="ms-label">순합계</div><div class="ms-val">${fM(cum.net)}</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="sc"><div class="sl">평균타수</div><div class="sv">${f1(avgV)}</div></div>
+      <div class="sc gold"><div class="sl">베스트</div><div class="sv">${bst||'—'}</div></div>
+      <div class="sc"><div class="sl">참가횟수</div><div class="sv">${sc.length}</div><div class="ss">/ ${ROUNDS.length}라운드</div></div>
+      <div class="sc"><div class="sl">워스트</div><div class="sv" style="color:var(--ls)">${wst||'—'}</div></div>
+    </div>
+    ${l10.length?`
+    <div class="section">
+      <div class="sec-title">최근 ${l10.length}라운드 트렌드</div>
+      <div class="card" style="margin-bottom:0">
+        <div style="padding:14px 14px 6px">
+          <div class="mchart" style="height:80px">${bars}</div>
+          <div style="height:18px"></div>
+        </div>
+      </div>
+    </div>`:''}
+    <div class="section" style="margin-top:10px">
+      <div class="sec-title">전체 라운드 기록</div>
+      <div class="card" style="margin-bottom:14px">${hist}<div style="height:1px"></div></div>
+    </div>`;
+
+  document.getElementById('pv-detail').style.display='block';
+}
+
+// ══════════════ STATS ══════════════
+function renderStats(){
+  const cmap={};
+  ROUNDS.forEach(r=>{
+    if(!cmap[r.c]) cmap[r.c]={c:r.c,cnt:0,avgs:[]};
+    cmap[r.c].cnt++;
+    const sc=MEMBERS.map(m=>r.scores[m.n]).filter(s=>s!=null);
+    const a=avg(sc); if(a) cmap[r.c].avgs.push(a);
+  });
+  document.getElementById('c-grid').innerHTML = Object.values(cmap).sort((a,b)=>b.cnt-a.cnt).map(c=>
+    `<div class="c-card">
+      <div class="cn">${c.c.replace(' Golf Club','').replace(' GC','')}</div>
+      <div class="cc">${c.cnt}회 방문</div>
+      <div class="cm">평균 ${f1(avg(c.avgs))}타</div>
+    </div>`).join('');
+
+  const avgs = ROUNDS.map(r=>{
+    const sc=MEMBERS.map(m=>r.scores[m.n]).filter(s=>s!=null);
+    return avg(sc);
+  }).filter(Boolean);
+
+  if(avgs.length){
+    const maxA=Math.max(...avgs), rng=maxA-Math.min(...avgs)||1, gavg=avg(avgs);
+    document.getElementById('mtg-trend').innerHTML = ROUNDS.map(r=>{
+      const sc=MEMBERS.map(m=>r.scores[m.n]).filter(s=>s!=null);
+      const a=avg(sc);
+      if(!a) return `<div class="mc-b" style="background:#eee;height:10%"><div class="mr">${r.lb}</div></div>`;
+      return `<div class="mc-b" style="background:${a<gavg?'var(--r5)':'var(--r3)'};height:${((maxA-a)/rng*65+15).toFixed(0)}%">
+        <div class="ml">${a.toFixed(0)}</div><div class="mr">${r.lb}</div>
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('att-list').innerHTML = MEMBERS.map((m,i)=>{
+    const rate = ROUNDS.length>0 ? (att(m.n).length/ROUNDS.length*100).toFixed(0) : 0;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--bd)">
+      <div class="av ${avc(i)}" style="width:30px;height:30px;font-size:12px">${m.n[0]}</div>
+      <div style="min-width:54px;font-size:14px;font-weight:600;font-family:'Cormorant Garamond',serif">${m.n}</div>
+      <div class="att-bar"><div class="att-fill" style="width:${rate}%"></div></div>
+      <div style="min-width:36px;text-align:right;font-size:12px;font-weight:700;color:var(--r5);font-family:'DM Sans',sans-serif">${rate}%</div>
+      <div style="font-size:11px;color:var(--mt);min-width:26px;font-family:'DM Sans',sans-serif">${att(m.n).length}회</div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════ INIT ══════════════
+fetchData();
+</script>
+</body>
+</html>
